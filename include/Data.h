@@ -20,7 +20,7 @@ public:
     static bool PopulateSaveData(RE::BGSSaveLoadFileEntry* a_entry)
     {
         using func_t = decltype(&PopulateSaveData);
-        REL::Relocation<func_t> func{ RELOCATION_ID(34627, 0) };
+        REL::Relocation<func_t> func{ RELOCATION_ID(34627, 35547) };
         return func(a_entry);
     }
 
