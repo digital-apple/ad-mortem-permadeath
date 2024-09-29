@@ -14,50 +14,52 @@ namespace Addresses
                 if (save_manager) {
                     Data::BuildSaveGameList(save_manager);
 
-                    const auto save_files = Data::GetSingleton()->GetSaveFileDirectory();
+                    const auto data = Data::GetSingleton();
+
+                    const auto save_files = data->GetSaveFileDirectory();
 
                     if (!save_files) { stl::report_and_fail("Failed to obtain save files path!"); }
 
                     const auto source_name = a_source ? a_source->GetName() : "???";
-                    const auto target_name = a_target->GetName();
-                    const auto target_race = a_target->GetRace()->GetName();
-                    const auto target_level = a_target->GetLevel();
-                    const auto location_name = a_target->GetCurrentLocation()->GetName();
-                    const auto days_passed = std::floorf(RE::Calendar::GetSingleton()->GetDaysPassed());
+                    const auto target_name = a_target ? a_target->GetName() : "Bernard";
+                    const auto race = a_target->GetRace()->GetName();
+                    const auto level = a_target->GetLevel();
+                    const auto location = a_target->GetCurrentLocation() ? a_target->GetCurrentLocation()->GetName() : "The Funhouse";
 
-                    Data::GetSingleton()->QueueMessage(source_name, target_name, location_name, target_race, target_level, days_passed);
+                    const auto calendar = RE::Calendar::GetSingleton();
+
+                    const auto days_passed = calendar ? std::floorf(calendar->GetDaysPassed()) : 0.f;
+
+                    data->QueueMessage(source_name, target_name, location, race, level, days_passed);
+                    data->WriteOutput(source_name, target_name, location, race, level, days_passed);
 
                     try {
                         if (std::filesystem::exists(*save_files)) {
-                            std::ofstream output("Data/SKSE/Plugins/ad-mortem-permadeath-engravings.txt", std::ios::app);
+                            for (const auto& file : save_manager->saveGameList) {
 
-                            if (output.is_open()) {
-                                output << "-=x=-=x=-=x=-=x=-=x=-=x=-=x=-=x=-=x=-=x=-=x=-=x=-=x=-=x=-=x=-\n\n";
-                                output << std::vformat(Settings::Message, std::make_format_args(source_name, target_name, location_name, target_name, target_name, target_race, target_level, days_passed, ""sv));
-                                output << "-=x=-=x=-=x=-=x=-=x=-=x=-=x=-=x=-=x=-=x=-=x=-=x=-=x=-=x=-=x=-\n\n";
+                                /*
+                                    * Ignore save files from characters that weren't properly initialized,
+                                        i.e characters that are results from a 'coc' or related command called from the Main Menu
+                                */
 
-                                for (const auto& file : save_manager->saveGameList) {
+                                if (save_manager->currentID == 0x0) { continue; };
 
-                                    /*
-                                        * Ignore save files from characters that weren't properly initialized, 
-                                            i.e characters that are results from a 'coc' or related command called from the Main Menu
-                                    */
+                                Data::PopulateSaveData(file);
 
-                                    if (save_manager->currentID == 0x0) { continue; };
+                                if (file->characterID == save_manager->currentID) {
 
-                                    if (file->characterID == save_manager->currentID) {
+                                    // Skip the deletion of save files with a play time lower than the current threshold
 
-                                        for (const auto& entry : std::filesystem::directory_iterator(*save_files)) {
-                                            if (entry.path().stem() == file->fileName.data()) {
-                                                logger::info("Addresses::DeathHandler :: Deleting file: '{}'", entry.path().filename().string());
+                                    if (data->SkipFile(file->playTime)) { continue; };
 
-                                                std::filesystem::remove(entry);
-                                            }
+                                    for (const auto& entry : std::filesystem::directory_iterator(*save_files)) {
+                                        if (entry.path().stem() == file->fileName.data()) {
+                                            logger::info("Addresses::DeathHandler :: Deleting file: '{}'", entry.path().filename().string());
+
+                                            std::filesystem::remove(entry);
                                         }
                                     }
                                 }
-
-                                output.close();
                             }
                         }
                     } catch (const std::filesystem::filesystem_error& error) {

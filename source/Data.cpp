@@ -65,7 +65,7 @@ public:
     }
 };
 
-void Data::QueueMessage(const std::string_view& a_source, const std::string_view& a_target, const std::string_view& a_location, const std::string_view& a_race, const std::uint16_t a_level, const float a_days)
+void Data::QueueMessage(const std::string_view& a_source, const std::string_view& a_target, const std::string_view& a_location, const std::string_view& a_race, const std::uint32_t a_level, const float a_days)
 {
     const auto factory_manager = RE::MessageDataFactoryManager::GetSingleton();
     const auto interface_strings = RE::InterfaceStrings::GetSingleton();
@@ -91,4 +91,41 @@ void Data::QueueMessage(const std::string_view& a_source, const std::string_view
     message->unk4C = 4;
 
     message->QueueMessage();
+}
+
+void Data::WriteOutput(const std::string_view& a_source, const std::string_view& a_target, const std::string_view& a_location, const std::string_view& a_race, const std::uint32_t a_level, const float a_days)
+{
+    std::ofstream output("Data/SKSE/Plugins/ad-mortem-permadeath-engravings.txt", std::ios::app);
+
+    if (output.is_open()) {
+        output << "-=x=-=x=-=x=-=x=-=x=-=x=-=x=-=x=-=x=-=x=-=x=-=x=-=x=-=x=-=x=-\n\n";
+        output << std::vformat(Settings::Message, std::make_format_args(a_source, a_target, a_location, a_target, a_target, a_race, a_level, a_days, ""sv));
+        output << "-=x=-=x=-=x=-=x=-=x=-=x=-=x=-=x=-=x=-=x=-=x=-=x=-=x=-=x=-=x=-\n\n";
+
+        output.close();
+    }
+}
+
+bool Data::SkipFile(const std::string_view& a_playtime)
+{
+    if (Settings::MinimumMinutes == 0.f) {
+        return false;
+    }
+
+    float hours, minutes, seconds;
+
+    std::stringstream stream(a_playtime.data());
+    std::string segment;
+
+    std::getline(stream, segment, '.');
+    hours = std::stof(segment);
+
+    std::getline(stream, segment, '.');
+    minutes = std::stof(segment);
+
+    stream >> seconds;
+
+    const auto playtime = (hours * 60.f) + minutes + (seconds / 60.f);
+
+    return playtime <= Settings::MinimumMinutes;
 }
