@@ -29,7 +29,7 @@ namespace Addresses
 
                     try {
                         if (std::filesystem::exists(*save_files)) {
-                            std::ofstream output("Data/SKSE/Ad Mortem - Permadeath/Engravings.txt", std::ios::app);
+                            std::ofstream output("Data/SKSE/Plugins/ad-mortem-permadeath-engravings.txt", std::ios::app);
 
                             if (output.is_open()) {
                                 output << "-=x=-=x=-=x=-=x=-=x=-=x=-=x=-=x=-=x=-=x=-=x=-=x=-=x=-=x=-=x=-\n\n";
