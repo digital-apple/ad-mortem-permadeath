@@ -3,7 +3,7 @@
 class Data
 {
 public:
-	static auto GetSingleton() -> Data*;
+    static auto GetSingleton() -> Data*;
 
     auto GetSaveFileDirectory() -> std::optional<std::filesystem::path>;
     void QueueMessage(const std::string_view& a_source, const std::string_view& a_target, const std::string_view& a_location, const std::string_view& a_race, const std::uint16_t a_level, const float a_days);
@@ -21,6 +21,7 @@ public:
         REL::Relocation<func_t> func{ RELOCATION_ID(54857, 55490) };
         return func();
     }
+
 private:
     Data() = default;
     Data(const Data&) = delete;
