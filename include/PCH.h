@@ -13,7 +13,7 @@ using namespace std::literals;
 
 namespace stl
 {
-	using namespace SKSE::stl;
+    using namespace SKSE::stl;
 
     template <class T>
     void write_thunk_call(std::uintptr_t a_source)
