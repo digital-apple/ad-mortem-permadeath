@@ -160,8 +160,8 @@ namespace Addresses
         static inline REL::Relocation<decltype(thunk)> func;
     };
 
-	void Hook()
-	{
+    void Hook()
+    {
         REL::Relocation<std::uintptr_t> death_handler{ RELOCATION_ID(36872, 37896), REL::Relocate(0x588, 0x5F8) };
         stl::write_thunk_call<DeathHandler>(death_handler.address());
 
@@ -185,5 +185,5 @@ namespace Addresses
         stl::write_thunk_call<CenterOnWorld>(center_on_world.address());
 
         logger::info("Addresses :: Hooked CenterOnWorld");
-	}
+    }
 }
