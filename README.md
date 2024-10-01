@@ -1,6 +1,6 @@
 # Ad Mortem - Permadeath
 
-* [Nexus Page](https://www.nexusmods.com/skyrimspecialedition/mods)
+* [Nexus Page](https://www.nexusmods.com/skyrimspecialedition/mods/130582)
 
 ### Requirements
 
@@ -18,7 +18,7 @@ xmake build
 
 [alandtse](https://github.com/alandtse) and all the people who contributed to [CommonLibVR/NG](https://github.com/alandtse/CommonLibVR/tree/ng).
 
-Ashen, [Asrak](https://github.com/MaybeAsrak), Forn, Ghoulsmasher, Ghoulified and [Noah](https://github.com/NoahBoddie) for general support.
+Ashen, [Asrak](https://github.com/MaybeAsrak), Forn, Ghoulsmasher, Ghoulified, [Noah](https://github.com/NoahBoddie) and Orrie for general support.
 
 ## License
 [GPL-3.0](LICENSE)
