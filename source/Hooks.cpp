@@ -14,7 +14,7 @@ namespace Addresses
                 if (save_manager) {
                     save_manager->BuildSaveGameList();
 
-                    logger::info("Processing death for character with ID: '{:X}'", save_manager->currentID);
+                    logger::info("Processing death for character with ID: '{:X}'", save_manager->currentCharacterID);
                     
                     const auto data = Data::GetSingleton();
 
@@ -40,11 +40,11 @@ namespace Addresses
                             for (const auto& file : save_manager->saveGameList) {
                                 file->PopulateFileEntryData();
 
-                                if (save_manager->currentID == 0x0) { continue; };
+                                if (save_manager->currentCharacterID == 0x0 || (file->characterID == 0x0 && file->characterName != target_name)) { continue; };
 
-                                if (save_manager->currentID == 0x0 || (file->characterID == 0x0 && file->characterName != target_name)) { continue; };
+                                logger::info("file name: '{}' | current id: '{:X}' | manager id: '{:X}'", file->fileName.c_str(), file->characterID, save_manager->currentCharacterID);
 
-                                if (file->characterID == save_manager->currentID) {
+                                if (file->characterID == save_manager->currentCharacterID) {
 
                                     // Skip the deletion of save files with a play time lower than the current threshold
 
