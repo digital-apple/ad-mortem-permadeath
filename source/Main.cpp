@@ -4,18 +4,20 @@
 void InitLogging()
 {
     auto path = logger::log_directory();
-    if (!path)
-        return;
+
+    if (!path) { return; }
 
     const auto plugin = SKSE::PluginDeclaration::GetSingleton();
+
     *path /= std::format("{}.log", plugin->GetName());
 
-    std::vector<spdlog::sink_ptr> sinks{
+    std::vector<spdlog::sink_ptr> sinks {
         std::make_shared<spdlog::sinks::basic_file_sink_mt>(path->string(), true),
         std::make_shared<spdlog::sinks::msvc_sink_mt>()
     };
 
     auto logger = std::make_shared<spdlog::logger>("global", sinks.begin(), sinks.end());
+
     logger->set_level(spdlog::level::info);
     logger->flush_on(spdlog::level::info);
 
@@ -51,6 +53,9 @@ SKSEPluginLoad(const SKSE::LoadInterface* a_skse)
     logger::info("{} v{} is loading...", plugin->GetName(), plugin->GetVersion());
 
     SKSE::Init(a_skse);
+
+    SKSE::AllocTrampoline(14 * 1);
+
     InitMessaging();
 
     logger::info("{} loaded.", plugin->GetName());

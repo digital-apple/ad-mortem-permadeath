@@ -10,20 +10,6 @@ public:
     void WriteOutput(const std::string_view& a_source, const std::string_view& a_target, const std::string_view& a_location, const std::string_view& a_race, const std::uint32_t a_level, const float a_days);
     bool SkipFile(const std::string_view& a_playtime);
 
-    static void BuildSaveGameList(RE::BGSSaveLoadManager* a_manager)
-    {
-        using func_t = decltype(&BuildSaveGameList);
-        REL::Relocation<func_t> func{ RELOCATION_ID(34850, 35760) };
-        return func(a_manager);
-    }
-
-    static bool PopulateSaveData(RE::BGSSaveLoadFileEntry* a_entry)
-    {
-        using func_t = decltype(&PopulateSaveData);
-        REL::Relocation<func_t> func{ RELOCATION_ID(34627, 35547) };
-        return func(a_entry);
-    }
-
     static bool QuitToMainMenu()
     {
         using func_t = decltype(&QuitToMainMenu);

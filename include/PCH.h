@@ -19,7 +19,6 @@ namespace stl
     void write_thunk_call(std::uintptr_t a_source)
     {
         auto& trampoline = SKSE::GetTrampoline();
-        SKSE::AllocTrampoline(14);
         T::func = trampoline.write_call<5>(a_source, T::thunk);
     }
 
