@@ -16,7 +16,6 @@ public:
         REL::Relocation<func_t> func{ RELOCATION_ID(54857, 55490) };
         return func();
     }
-
 private:
     Data() = default;
     Data(const Data&) = delete;
