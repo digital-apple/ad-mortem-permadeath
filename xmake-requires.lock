@@ -9,7 +9,7 @@
                 commit = "b2d6e85d23e92d8b8aade0f5cf926075912e7e37",
                 url = "https://gitlab.com/tboox/xmake-repo.git"
             },
-            version = "3.27.2-msvc1"
+            version = "3.30.4"
         },
         ["directxmath#31fecfc4"] = {
             repo = {

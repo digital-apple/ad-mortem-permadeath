@@ -6,7 +6,7 @@ includes("lib/CommonLibVR")
 
 -- set project
 set_project("ad-mortem-permadeath")
-set_version("1.0.0")
+set_version("1.0.1")
 set_license("GPL-3.0")
 
 -- set defaults

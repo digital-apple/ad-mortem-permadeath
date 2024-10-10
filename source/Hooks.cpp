@@ -26,7 +26,7 @@ namespace Addresses
                     const auto target_name = a_target ? a_target->GetName() : "Bernard";
                     const auto race = a_target->GetRace()->GetName();
                     const auto level = a_target->GetLevel();
-                    const auto location = a_target->GetCurrentLocation() ? a_target->GetCurrentLocation()->GetName() : "The Funhouse";
+                    const auto location = a_target->GetCurrentLocation() ? a_target->GetCurrentLocation()->GetName() : a_target->GetWorldspace() ? a_target->GetWorldspace()->GetName() : "Tamriel";
 
                     const auto calendar = RE::Calendar::GetSingleton();
 
