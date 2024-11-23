@@ -1,6 +1,6 @@
 #pragma once
 
-namespace Addresses
+namespace Hooks
 {
-    void Hook();
+    void Install();
 }

@@ -95,7 +95,7 @@ void Data::QueueMessage(const std::string_view& a_source, const std::string_view
 
 void Data::WriteOutput(const std::string_view& a_source, const std::string_view& a_target, const std::string_view& a_location, const std::string_view& a_race, const std::uint32_t a_level, const float a_days)
 {
-    std::ofstream output("Data/SKSE/Plugins/ad-mortem-permadeath-engravings.txt", std::ios::app);
+    std::ofstream output(Settings::ENGRAVINGS_PATH, std::ios::app);
 
     if (output.is_open()) {
         output << "-=x=-=x=-=x=-=x=-=x=-=x=-=x=-=x=-=x=-=x=-=x=-=x=-=x=-=x=-=x=-\n\n";

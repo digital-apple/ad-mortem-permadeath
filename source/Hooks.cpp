@@ -2,7 +2,7 @@
 
 #include "Data.h"
 
-namespace Addresses
+namespace Hooks
 {
     struct DeathHandler 
     {
@@ -14,7 +14,7 @@ namespace Addresses
                 if (save_manager) {
                     save_manager->BuildSaveGameList();
 
-                    logger::info("Processing death for character with ID: '{:X}'", save_manager->currentCharacterID);
+                    INFO("Hooks::DeathHandler ~ Processing death for character: <{:X}>", save_manager->currentCharacterID);
                     
                     const auto data = Data::GetSingleton();
 
@@ -22,11 +22,20 @@ namespace Addresses
 
                     if (!save_files) { stl::report_and_fail("Failed to obtain save files path!"); }
 
+                    const auto worldspace = a_target->GetWorldspace();
+
+                    // DLC2ApocryphaWorld
+                    if (worldspace && worldspace->GetFormID() == 0x0401C0B2) {
+                        INFO("Hooks::DeathHandler ~ Character: <{:X}> died in DLC2ApocryphaWorld! Ceasing the plugin's functions...", save_manager->currentCharacterID);
+
+                        return func(a_target, a_source);
+                    }
+
                     const auto source_name = a_source ? a_source->GetName() : "???";
                     const auto target_name = a_target ? a_target->GetName() : "Bernard";
                     const auto race = a_target->GetRace()->GetName();
                     const auto level = a_target->GetLevel();
-                    const auto location = a_target->GetCurrentLocation() ? a_target->GetCurrentLocation()->GetName() : a_target->GetWorldspace() ? a_target->GetWorldspace()->GetName() : "Tamriel";
+                    const auto location = a_target->GetCurrentLocation() ? a_target->GetCurrentLocation()->GetName() : worldspace ? worldspace->GetName() : "Tamriel";
 
                     const auto calendar = RE::Calendar::GetSingleton();
 
@@ -42,17 +51,18 @@ namespace Addresses
 
                                 if (save_manager->currentCharacterID == 0x0 || (file->characterID == 0x0 && file->characterName != target_name)) { continue; };
 
-                                logger::info("file name: '{}' | current id: '{:X}' | manager id: '{:X}'", file->fileName.c_str(), file->characterID, save_manager->currentCharacterID);
-
                                 if (file->characterID == save_manager->currentCharacterID) {
 
                                     // Skip the deletion of save files with a play time lower than the current threshold
 
-                                    if (data->SkipFile(file->playTime)) { continue; };
+                                    if (data->SkipFile(file->playTime)) { 
+                                        INFO("Hooks::DeathHandler ~ Skipping file: <{}> with a play time of: <{}>", file->fileName.c_str(), file->playTime.c_str());
+                                        continue; 
+                                    };
 
                                     for (const auto& entry : std::filesystem::directory_iterator(*save_files)) {
                                         if (entry.path().stem() == file->fileName.data()) {
-                                            logger::info("Addresses::DeathHandler :: Deleting file: '{}'", entry.path().filename().string());
+                                            INFO("Hooks::DeathHandler ~ Deleting file: <{}> with a play time of: <{}>", file->fileName.c_str(), file->playTime.c_str());
 
                                             std::filesystem::remove(entry);
                                         }
@@ -91,15 +101,15 @@ namespace Addresses
         static inline REL::Relocation<decltype(thunk)> func;
     };
 
-    void Hook()
+    void Install()
     {
         REL::Relocation death_handler{ RELOCATION_ID(36872, 37896), REL::Relocate(0x588, 0x5F8) };
         stl::write_thunk_call<DeathHandler>(death_handler.address());
 
-        logger::info("Addresses :: Hooked DeathHandler");
+        INFO("Hooks ~ Hooked <DeathHandler>");
 
         stl::write_vfunc<RE::QuickSaveLoadHandler, 0x1, CanProcess>();
 
-        logger::info("Addresses :: Hooked QuickSaveLoadHandler::CanProcess");
+        INFO("Hooks ~ Hooked <QuickSaveLoadHandler::CanProcess>");
     }
 }

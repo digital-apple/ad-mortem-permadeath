@@ -33,22 +33,23 @@ struct Settings
 {
     static inline void Load()
     {
-        logger::info("Loading Settings!");
-
-        const auto path = L"Data/SKSE/Plugins/ad-mortem-permadeath.ini";
+        INFO("Settings::Load ~ Loading settings...");
 
         CSimpleIniA ini;
 
         ini.SetUnicode();
 
-        ini.LoadFile(path);
+        ini.LoadFile(INI_PATH.string().data());
 
         ReadSetting(ini, "Settings", "fMinimumMinutesForDeletion", MinimumMinutes);
+        ReadSetting(ini, "Settings", "bCountApocryphaDeaths", ApocryphaDeaths);
 
         ReadSetting(ini, "Translations", "sMessage", Message);
         ReadSetting(ini, "Translations", "sTip", Tip);
         ReadSetting(ini, "Translations", "sQuitToDesktop", QuitToDesktop);
         ReadSetting(ini, "Translations", "sQuitToMainMenu", QuitToMainMenu);
+
+        INFO("Settings::Load ~ Loaded settings.");
     }
 
     static inline void ReadSetting(CSimpleIni& a_ini, const char* a_section, const char* a_key, std::string& a_setting)
@@ -69,6 +70,16 @@ struct Settings
         }
     }
 
+    static inline void ReadSetting(CSimpleIni& a_ini, const char* a_section, const char* a_key, bool& a_setting)
+    {
+        auto found = a_ini.GetValue(a_section, a_key);
+
+        if (found)
+        {
+            a_setting = a_ini.GetBoolValue(a_section, a_key);
+        }
+    }
+
     static inline void ReadSetting(CSimpleIni& a_ini, const char* a_section, const char* a_key, float& a_setting)
     {
         auto found = a_ini.GetValue(a_section, a_key);
@@ -77,11 +88,16 @@ struct Settings
         {
             auto result = static_cast<float>(a_ini.GetDoubleValue(a_section, a_key));
 
-            a_setting = result > 20.f ? 20.f : result;
+            a_setting = result > 30.f ? 30.f : result;
         }
     }
 
+    static inline std::filesystem::path INI_PATH = L"Data/SKSE/Plugins/AdMortemPermadeath.ini";
+    static inline std::filesystem::path ENGRAVINGS_PATH = L"Data/SKSE/Plugins/AdMortemPermadeathEngravings.txt";
+
     static inline float MinimumMinutes = 5.f;
+
+    static inline bool ApocryphaDeaths = false;
 
     static inline std::string Message = "{} put an end to {}'s misery at {}!\n\n{}'s inscription:\n\nName: {}\nRace: {}\nLevel: {}\nIn-game days spent alive: {}\n\n{}";
     static inline std::string Tip = "Tip: If you intend to keep playing, it is advisable to restart the game to avoid data corruption!";

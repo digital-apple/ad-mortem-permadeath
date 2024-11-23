@@ -5,8 +5,8 @@ set_xmakever("2.8.2")
 includes("lib/CommonLibVR")
 
 -- set project
-set_project("ad-mortem-permadeath")
-set_version("1.0.1")
+set_project("AdMortemPermadeath")
+set_version("1.1.0")
 set_license("GPL-3.0")
 
 -- set defaults
@@ -26,7 +26,7 @@ set_config("skyrim_vr", false)
 add_requires("simpleini")
 
 -- targets
-target("ad-mortem-permadeath")
+target("AdMortemPermadeath")
     -- add dependencies to target
     add_deps("commonlibsse-ng")
 
@@ -34,7 +34,7 @@ target("ad-mortem-permadeath")
 
     -- add commonlibsse-ng plugin
     add_rules("commonlibsse-ng.plugin", {
-        name = "ad-mortem-permadeath",
+        name = "AdMortemPermadeath",
         author = "digital-apple",
         description = "Ad Mortem: A permadeath plugin"
     })
@@ -45,6 +45,8 @@ target("ad-mortem-permadeath")
     add_includedirs("include", { public = true })
     set_pcxxheader("include/PCH.h")
 
+    add_extrafiles("release/**.ini")
+
     -- copy build files to MODS or GAME paths (remove this if not needed)
     after_build(function(target)
         local copy = function(env, ext)
@@ -54,6 +56,7 @@ target("ad-mortem-permadeath")
                     os.mkdir(plugins)
                     os.trycp(target:targetfile(), plugins)
                     os.trycp(target:symbolfile(), plugins)
+                    os.trycp("$(projectdir)/release/*.ini", plugins)
                 end
             end
         end

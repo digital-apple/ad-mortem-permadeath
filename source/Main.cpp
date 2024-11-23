@@ -1,17 +1,16 @@
 #include "Data.h"
 #include "Hooks.h"
 
-void InitLogging()
+void InitializeLogger()
 {
-    auto path = logger::log_directory();
+    auto path = SKSE::log::log_directory();
 
     if (!path) { return; }
 
     const auto plugin = SKSE::PluginDeclaration::GetSingleton();
-
     *path /= std::format("{}.log", plugin->GetName());
 
-    std::vector<spdlog::sink_ptr> sinks {
+    std::vector<spdlog::sink_ptr> sinks{
         std::make_shared<spdlog::sinks::basic_file_sink_mt>(path->string(), true),
         std::make_shared<spdlog::sinks::msvc_sink_mt>()
     };
@@ -25,40 +24,31 @@ void InitLogging()
     spdlog::set_pattern("[%^%L%$] %v");
 }
 
-void InitMessaging()
+void HandleMessage(SKSE::MessagingInterface::Message* a_message)
 {
-    logger::trace("Initializing messaging listener.");
-
-    const auto messaging_interface = SKSE::GetMessagingInterface();
-
-    if (!messaging_interface->RegisterListener([](SKSE::MessagingInterface::Message* a_message) {
-        switch (a_message->type) {
-        case SKSE::MessagingInterface::kInputLoaded:
+    switch (a_message->type) {
+    case SKSE::MessagingInterface::kInputLoaded:
+        {
             Settings::Load();
-            Addresses::Hook();
-            break;
+            Hooks::Install();
         }
-
-        })) {
-        stl::report_and_fail("Failed to initialize message listener.");
+        break;
     }
 }
 
 SKSEPluginLoad(const SKSE::LoadInterface* a_skse)
 {
-    InitLogging();
+    InitializeLogger();
 
-    const auto plugin = SKSE::PluginDeclaration::GetSingleton();
+    SKSE::Init(a_skse);
 
-    logger::info("{} v{} is loading...", plugin->GetName(), plugin->GetVersion());
+    const auto messaging_interface = SKSE::GetMessagingInterface();
+
+    if (!messaging_interface) { stl::report_and_fail("SKSEPluginLoad ~ Failed to communicate with the messaging interface!"); }
 
     SKSE::Init(a_skse);
 
     SKSE::AllocTrampoline(14 * 1);
-
-    InitMessaging();
-
-    logger::info("{} loaded.", plugin->GetName());
 
     return true;
 }
