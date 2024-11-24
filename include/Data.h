@@ -42,7 +42,6 @@ struct Settings
         ini.LoadFile(INI_PATH.string().data());
 
         ReadSetting(ini, "Settings", "fMinimumMinutesForDeletion", MinimumMinutes);
-        ReadSetting(ini, "Settings", "bCountApocryphaDeaths", ApocryphaDeaths);
 
         ReadSetting(ini, "Translations", "sMessage", Message);
         ReadSetting(ini, "Translations", "sTip", Tip);
@@ -96,8 +95,6 @@ struct Settings
     static inline std::filesystem::path ENGRAVINGS_PATH = L"Data/SKSE/Plugins/AdMortemPermadeathEngravings.txt";
 
     static inline float MinimumMinutes = 5.f;
-
-    static inline bool ApocryphaDeaths = false;
 
     static inline std::string Message = "{} put an end to {}'s misery at {}!\n\n{}'s inscription:\n\nName: {}\nRace: {}\nLevel: {}\nIn-game days spent alive: {}\n\n{}";
     static inline std::string Tip = "Tip: If you intend to keep playing, it is advisable to restart the game to avoid data corruption!";

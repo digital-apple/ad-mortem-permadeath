@@ -42,13 +42,13 @@ SKSEPluginLoad(const SKSE::LoadInterface* a_skse)
 
     SKSE::Init(a_skse);
 
+    SKSE::AllocTrampoline(14 * 1);
+
     const auto messaging_interface = SKSE::GetMessagingInterface();
 
     if (!messaging_interface) { stl::report_and_fail("SKSEPluginLoad ~ Failed to communicate with the messaging interface!"); }
 
-    SKSE::Init(a_skse);
-
-    SKSE::AllocTrampoline(14 * 1);
+    messaging_interface->RegisterListener(HandleMessage);
 
     return true;
 }

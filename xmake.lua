@@ -34,7 +34,7 @@ target("AdMortemPermadeath")
 
     -- add commonlibsse-ng plugin
     add_rules("commonlibsse-ng.plugin", {
-        name = "AdMortemPermadeath",
+        name = "Ad Mortem - Permadeath",
         author = "digital-apple",
         description = "Ad Mortem: A permadeath plugin"
     })

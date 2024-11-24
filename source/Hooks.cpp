@@ -12,7 +12,7 @@ namespace Hooks
                 const auto save_manager = RE::BGSSaveLoadManager::GetSingleton();
 
                 if (save_manager) {
-                    save_manager->BuildSaveGameList();
+                    save_manager->PopulateSaveList();
 
                     INFO("Hooks::DeathHandler ~ Processing death for character: <{:X}>", save_manager->currentCharacterID);
                     
@@ -22,20 +22,17 @@ namespace Hooks
 
                     if (!save_files) { stl::report_and_fail("Failed to obtain save files path!"); }
 
-                    const auto worldspace = a_target->GetWorldspace();
-
-                    // DLC2ApocryphaWorld
-                    if (worldspace && worldspace->GetFormID() == 0x0401C0B2) {
-                        INFO("Hooks::DeathHandler ~ Character: <{:X}> died in DLC2ApocryphaWorld! Ceasing the plugin's functions...", save_manager->currentCharacterID);
+                    if (a_target->IsEssential()) {
+                        INFO("Hooks::DeathHandler ~ Character: <{:X}> is currently flagged as essential! Aborting deletion...", save_manager->currentCharacterID);
 
                         return func(a_target, a_source);
                     }
-
+         
                     const auto source_name = a_source ? a_source->GetName() : "???";
                     const auto target_name = a_target ? a_target->GetName() : "Bernard";
                     const auto race = a_target->GetRace()->GetName();
                     const auto level = a_target->GetLevel();
-                    const auto location = a_target->GetCurrentLocation() ? a_target->GetCurrentLocation()->GetName() : worldspace ? worldspace->GetName() : "Tamriel";
+                    const auto location = a_target->GetCurrentLocation() ? a_target->GetCurrentLocation()->GetName() : a_target->GetWorldspace() ? a_target->GetWorldspace()->GetName() : "Tamriel";
 
                     const auto calendar = RE::Calendar::GetSingleton();
 
