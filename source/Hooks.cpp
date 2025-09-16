@@ -1,81 +1,109 @@
 #include "Hooks.h"
 
-#include "Data.h"
+#include "System.h"
+
+#undef GetObject
 
 namespace Hooks
 {
-    struct DeathHandler 
+    template <System::DamageType T>
+    struct DamageHandler
     {
-        static bool thunk(RE::Character* a_target, RE::Character* a_source)
+        static bool Call(RE::Actor* a_Target, float a_Magnitude, RE::Actor* a_Source, bool a_NoDifficultyAdjustment)
         {
-            if (a_target == RE::PlayerCharacter::GetSingleton()) {
-                const auto save_manager = RE::BGSSaveLoadManager::GetSingleton();
+            const auto result = Callback(a_Target, a_Magnitude, a_Source, a_NoDifficultyAdjustment);
 
-                if (save_manager) {
-                    save_manager->PopulateSaveList();
-
-                    INFO("Hooks::DeathHandler ~ Processing death for character: <{:X}>", save_manager->currentCharacterID);
-                    
-                    const auto data = Data::GetSingleton();
-
-                    const auto save_files = data->GetSaveFileDirectory();
-
-                    if (!save_files) { stl::report_and_fail("Failed to obtain save files path!"); }
-
-                    if (a_target->IsEssential()) {
-                        INFO("Hooks::DeathHandler ~ Character: <{:X}> is currently flagged as essential! Aborting deletion...", save_manager->currentCharacterID);
-
-                        return func(a_target, a_source);
-                    }
-         
-                    const auto source_name = a_source ? a_source->GetName() : "???";
-                    const auto target_name = a_target ? a_target->GetName() : "Bernard";
-                    const auto race = a_target->GetRace()->GetName();
-                    const auto level = a_target->GetLevel();
-                    const auto location = a_target->GetCurrentLocation() ? a_target->GetCurrentLocation()->GetName() : a_target->GetWorldspace() ? a_target->GetWorldspace()->GetName() : "Tamriel";
-
-                    const auto calendar = RE::Calendar::GetSingleton();
-
-                    const auto days_passed = calendar ? std::floorf(calendar->GetDaysPassed()) : 0.f;
-
-                    data->QueueMessage(source_name, target_name, location, race, level, days_passed);
-                    data->WriteOutput(source_name, target_name, location, race, level, days_passed);
-
-                    try {
-                        if (std::filesystem::exists(*save_files)) {
-                            for (const auto& file : save_manager->saveGameList) {
-                                file->PopulateFileEntryData();
-
-                                if (save_manager->currentCharacterID == 0x0 || (file->characterID == 0x0 && file->characterName != target_name)) { continue; };
-
-                                if (file->characterID == save_manager->currentCharacterID) {
-
-                                    // Skip the deletion of save files with a play time lower than the current threshold
-
-                                    if (data->SkipFile(file->playTime)) { 
-                                        INFO("Hooks::DeathHandler ~ Skipping file: <{}> with a play time of: <{}>", file->fileName.c_str(), file->playTime.c_str());
-                                        continue; 
-                                    };
-
-                                    for (const auto& entry : std::filesystem::directory_iterator(*save_files)) {
-                                        if (entry.path().stem() == file->fileName.data()) {
-                                            INFO("Hooks::DeathHandler ~ Deleting file: <{}> with a play time of: <{}>", file->fileName.c_str(), file->playTime.c_str());
-
-                                            std::filesystem::remove(entry);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    } catch (const std::filesystem::filesystem_error& error) {
-                        stl::report_and_error(error.what());
-                    }
+            if (!System::IsDead(a_Target)) {
+                return result;
+            }
+            
+            switch (T)
+            {
+            case System::DamageType::kUnknown:
+                System::Delete(System::DeathType::kUnknown, a_Source, a_Target);
+                break;
+            case System::DamageType::kDrowning:
+                System::Delete(System::DeathType::kDrowning, a_Source, a_Target);
+                break;
+            case System::DamageType::kFalling:
+                System::Delete(System::DeathType::kFalling, a_Source, a_Target);
+                break;
+            case System::DamageType::kPhysical:
+                {
+                    System::Delete(a_Source && a_Source != a_Target ?
+                        System::DeathType::kPhysical :
+                        System::DeathType::kEnvironmentalPhysical,
+                    a_Source, a_Target);
                 }
+                break;
+            case System::DamageType::kMagical:
+                {
+                    System::Delete(a_Source && a_Source != a_Target ?
+                        System::DeathType::kMagical :
+                        System::DeathType::kEnvironmentalMagical,
+                    a_Source, a_Target);
+                }
+                break;
+            default:
+                break;
             }
 
-            return func(a_target, a_source);
+            return result;
         }
-        static inline REL::Relocation<decltype(thunk)> func;
+        static inline REL::Relocation<decltype(Call)> Callback;
+    };
+
+    struct ModActorValue : Xbyak::CodeGenerator
+    {
+        ModActorValue(std::uintptr_t a_Function, std::uintptr_t a_Address)
+        {
+            Xbyak::Label Function;
+            Xbyak::Label Return;
+
+            mov(rax, ptr[rip + Function]);
+            jmp(ptr[rip + Return]);
+
+            L(Function);
+            dq(a_Function);
+
+            L(Return);
+            dq(a_Address + 0x7);
+        }
+
+        static void Call(RE::BSScript::Internal::VirtualMachine* a_VM, RE::VMStackID a_StackID, RE::Actor* a_Actor, RE::BSFixedString a_ActorValue, float a_Magnitude)
+        {
+            if (System::IsDead(a_Actor)) {
+                System::Delete(System::DeathType::kScripted, nullptr, a_Actor);
+
+                RE::BSTSmartPointer<RE::BSScript::Stack> stack;
+
+                a_VM->GetStackByID(a_StackID, stack);
+
+                std::string output;
+
+                auto top = stack ? stack->top : nullptr;
+
+                while (top) {
+                    const auto owning_function = top->owningFunction ? top->owningFunction.get() : nullptr;
+                    const auto script_name = owning_function ? owning_function->GetObjectTypeName().c_str() : "NONE";
+                    const auto function_name = owning_function ? owning_function->GetName().c_str() : "NONE";
+
+                    std::string frame = std::format("{}::{}()", script_name, function_name);
+
+                    if (output.empty()) {
+                        output = frame;
+                    } else {
+                        output = frame + "->" + output;
+                    }
+
+                    top = top->previousFrame;
+                }
+                
+                if (!output.empty()) { INFO("ModActorValue >> {}", output); }
+            }
+
+            return Native::ModActorValue(a_VM, a_StackID, a_Actor, a_ActorValue, a_Magnitude);
+        }
     };
 
     /*
@@ -85,7 +113,7 @@ namespace Hooks
 
     struct CanProcess
     {
-        static bool thunk(RE::QuickSaveLoadHandler* a_handler, RE::InputEvent* a_event)
+        static bool Call(RE::QuickSaveLoadHandler* a_handler, RE::InputEvent* a_event)
         {
             const auto player = RE::PlayerCharacter::GetSingleton();
 
@@ -93,19 +121,21 @@ namespace Hooks
                 return false;
             }
 
-            return func(a_handler, a_event);
+            return Callback(a_handler, a_event);
         }
-        static inline REL::Relocation<decltype(thunk)> func;
+        static inline REL::Relocation<decltype(Call)> Callback;
     };
 
     void Install()
     {
-        REL::Relocation death_handler{ RELOCATION_ID(36872, 37896), REL::Relocate(0x588, 0x5F8) };
-        stl::write_thunk_call<DeathHandler>(death_handler.address());
+        HOOK::CALL5<DamageHandler<System::DamageType::kDrowning>>(RELOCATE_ID(0, 37348), RELOCATE_OFFSET(0x0, 0x8EE));
+        HOOK::CALL5<DamageHandler<System::DamageType::kFalling>>(RELOCATE_ID(0, 37998), RELOCATE_OFFSET(0x0, 0xC7));
+        HOOK::CALL5<DamageHandler<System::DamageType::kPhysical>>(RELOCATE_ID(0, 38586), RELOCATE_OFFSET(0x0, 0x4A7));
+        HOOK::CALL5<DamageHandler<System::DamageType::kMagical>>(RELOCATE_ID(0, 35086), RELOCATE_OFFSET(0x0, 0x232));
 
-        INFO("Hooks ~ Hooked <DeathHandler>");
+        HOOK::BRANCH5<ModActorValue, 2>(RELOCATE_ID(0, 54784), RELOCATE_OFFSET(0x0, 0x909));
 
-        stl::write_vfunc<RE::QuickSaveLoadHandler, 0x1, CanProcess>();
+        HOOK::VFUNC<RE::QuickSaveLoadHandler, 0x1, CanProcess>();
 
         INFO("Hooks ~ Hooked <QuickSaveLoadHandler::CanProcess>");
     }
