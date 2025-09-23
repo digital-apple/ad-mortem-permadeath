@@ -31,38 +31,23 @@ public:
         kMagical = 4
     };
 
-    enum class DeathType : std::uint32_t
-    {
-        kUnknown = 0,
-        kDrowning = 1,
-        kFalling = 2,
-        kPhysical = 3,
-        kMagical = 4,
-        kEnvironmentalPhysical = 5,
-        kEnvironmentalMagical = 6,
-        kScripted = 7
-    };
-
     struct Engraving
     {
-        std::string source;
         std::string target;
+        std::string source;
         std::string race;
         std::string location;
         std::uint16_t level;
         float days;
-        DeathType cause;
     };
 
     static auto GetSingleton() -> System*;
 
     static bool IsDead(RE::Actor* a_Actor);
 
-    static void Delete(DeathType a_DeathType, RE::Actor* a_SourceActor, RE::Actor* a_TargetActor);
+    static void Delete(RE::Actor* a_Target, const std::string_view& a_Source);
 
     static void QueueDeathMessage(const Engraving& a_Engraving);
-
-    static auto TypeToString(DeathType a_DeathType) -> std::string_view;
 
     auto GetSaveFilesDirectory() -> std::optional<std::filesystem::path>;
 

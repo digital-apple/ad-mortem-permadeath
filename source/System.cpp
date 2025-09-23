@@ -13,7 +13,7 @@ bool System::IsDead(RE::Actor* a_Actor)
 {
     // Check for Essential flag!
 
-    if (a_Actor == RE::PlayerCharacter::GetSingleton()) {
+    if (a_Actor && a_Actor == RE::PlayerCharacter::GetSingleton()) {
         const auto av_owner = a_Actor ? a_Actor->AsActorValueOwner() : nullptr;
 
         if (av_owner) {
@@ -28,7 +28,7 @@ bool System::IsDead(RE::Actor* a_Actor)
     return false;
 }
 
-void System::Delete(DeathType a_DeathType, RE::Actor* a_SourceActor, RE::Actor* a_TargetActor)
+void System::Delete(RE::Actor* a_Target, const std::string_view& a_Source)
 {
     INFO("System::Delete >> CALL!");
 
@@ -50,17 +50,17 @@ void System::Delete(DeathType a_DeathType, RE::Actor* a_SourceActor, RE::Actor* 
 
     // Fix this shit
 
-    const auto source_name = a_SourceActor ? a_SourceActor->GetName() : "Godhead";
-    const auto target_name = a_TargetActor ? a_TargetActor->GetName() : "Player";
-    const auto race = a_TargetActor ? a_TargetActor->GetRace() ? a_TargetActor->GetRace()->GetName() : "Nord" : "Nord";
-    const auto level = a_TargetActor->GetLevel();
-    const auto location = a_TargetActor->GetCurrentLocation() ? a_TargetActor->GetCurrentLocation()->GetName() : a_TargetActor->GetWorldspace() ? a_TargetActor->GetWorldspace()->GetName() : "Tamriel";
+    const auto target_name = a_Target ? a_Target->GetName() : "Player";
+    const auto source_name = a_Source.data();
+    const auto race = a_Target ? a_Target->GetRace() ? a_Target->GetRace()->GetName() : "Nord" : "Nord";
+    const auto level = a_Target ? a_Target->GetLevel() : std::uint16_t{ 0 };
+    const auto location = a_Target->GetCurrentLocation() ? a_Target->GetCurrentLocation()->GetName() : a_Target->GetWorldspace() ? a_Target->GetWorldspace()->GetName() : "Tamriel";
 
     const auto calendar = RE::Calendar::GetSingleton();
 
     const auto days_passed = calendar ? std::floorf(calendar->GetDaysPassed()) : 0.f;
 
-    QueueDeathMessage({ source_name, target_name, race, location, level, days_passed, a_DeathType });
+    QueueDeathMessage({ target_name, source_name, race, location, level, days_passed });
 }
 
 auto System::GetSaveFilesDirectory() -> std::optional<std::filesystem::path>
@@ -98,18 +98,25 @@ auto System::GetSaveFilesDirectory() -> std::optional<std::filesystem::path>
 class MessageCallback : public RE::IMessageBoxCallback
 {
 public:
+    enum class Message
+    {
+        kNone = -1,
+        kQuitToDesktop = 0,
+        kQuitToMainMenu = 1
+    };
+
     MessageCallback() = default;
     ~MessageCallback() override = default;
 
     void Run(RE::IMessageBoxCallback::Message a_message) override
     {
-        const auto response = static_cast<std::int32_t>(a_message) - 4;
+        const auto response = static_cast<Message>(static_cast<std::int32_t>(a_message) - 4);
 
         switch (response) {
-        case 0:
+        case Message::kQuitToDesktop:
             RE::Main::GetSingleton()->quitGame = true;
             break;
-        case 1:
+        case Message::kQuitToMainMenu:
             Native::QuitToMainMenu();
             break;
         default:
@@ -141,17 +148,17 @@ void System::QueueDeathMessage(const Engraving& a_Engraving)
         return;
     }
 
-    const auto sAMP_Character = game_settings->GetSetting("sAMP_Character");
+    const auto sAMP_Engraving = game_settings->GetSetting("sAMP_Engraving");
     const auto sAMP_Tip = game_settings->GetSetting("sAMP_Tip");
     const auto sAMP_QuitToDesktop = game_settings->GetSetting("sAMP_QuitToDesktop");
     const auto sAMP_QuitToMainMenu = game_settings->GetSetting("sAMP_QuitToMainMenu");
 
-    INFO("{} : {} : {} : {} : {} : {} : {}", a_Engraving.source, a_Engraving.target, a_Engraving.location, a_Engraving.race, a_Engraving.level, a_Engraving.days, std::to_underlying(a_Engraving.cause));
+    INFO("{} : {} : {} : {} : {} : {}", a_Engraving.target, a_Engraving.source, a_Engraving.location, a_Engraving.race, a_Engraving.level, a_Engraving.days);
 
     char buffer[0x104];
-    std::snprintf(buffer, sizeof(buffer), sAMP_Character->GetString(), a_Engraving.target.c_str(), a_Engraving.race.c_str(), a_Engraving.level, a_Engraving.days);
+    std::snprintf(buffer, sizeof(buffer), sAMP_Engraving->GetString(), a_Engraving.target.c_str(), a_Engraving.race.c_str(), a_Engraving.level, a_Engraving.days, a_Engraving.source.c_str());
 
-    message->bodyText = std::format("{}\n\nCause of Death: {}\n\n{}", buffer, TypeToString(a_Engraving.cause), sAMP_Tip->GetString());
+    message->bodyText = std::format("{}\n\n{}", buffer, sAMP_Tip->GetString());
 
     message->buttonText.push_back(sAMP_QuitToDesktop->GetString());
     message->buttonText.push_back(sAMP_QuitToMainMenu->GetString());
@@ -185,36 +192,4 @@ bool System::SkipFile(const std::string_view& a_playtime)
     const auto playtime = (hours * 60.f) + minutes + (seconds / 60.f);
 
     return playtime <= Settings::MinimumMinutesForDeletion;
-}
-
-auto System::TypeToString(System::DeathType a_DeathType) -> std::string_view
-{
-    switch (a_DeathType) {
-    case System::DeathType::kUnknown:
-        return std::string_view{ "Unknown" };
-
-    case System::DeathType::kDrowning:
-        return std::string_view{ "Drowning" };
-
-    case System::DeathType::kFalling:
-        return std::string_view{ "Falling" };
-
-    case System::DeathType::kPhysical:
-        return std::string_view{ "Physical" };
-
-    case System::DeathType::kMagical:
-        return std::string_view{ "Magical" };
-
-    case System::DeathType::kEnvironmentalPhysical:
-        return std::string_view{ "Environmental Physical" };
-
-    case System::DeathType::kEnvironmentalMagical:
-        return std::string_view{ "Environmental Magical" };
-
-    case System::DeathType::kScripted:
-        return std::string_view{ "Scripted" };
-
-    default:
-        return std::string_view{ };
-    }
 }

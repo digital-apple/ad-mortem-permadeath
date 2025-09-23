@@ -20,28 +20,30 @@ namespace Hooks
             switch (T)
             {
             case System::DamageType::kUnknown:
-                System::Delete(System::DeathType::kUnknown, a_Source, a_Target);
+                System::Delete(a_Target, "Unknown"sv);
                 break;
             case System::DamageType::kDrowning:
-                System::Delete(System::DeathType::kDrowning, a_Source, a_Target);
+                System::Delete(a_Target, "Drowning"sv);
                 break;
             case System::DamageType::kFalling:
-                System::Delete(System::DeathType::kFalling, a_Source, a_Target);
+                System::Delete(a_Target, "Falling"sv);
                 break;
             case System::DamageType::kPhysical:
                 {
-                    System::Delete(a_Source && a_Source != a_Target ?
-                        System::DeathType::kPhysical :
-                        System::DeathType::kEnvironmentalPhysical,
-                    a_Source, a_Target);
+                    if (a_Target != a_Source) {
+
+                    } else {
+
+                    }
                 }
                 break;
             case System::DamageType::kMagical:
                 {
-                    System::Delete(a_Source && a_Source != a_Target ?
-                        System::DeathType::kMagical :
-                        System::DeathType::kEnvironmentalMagical,
-                    a_Source, a_Target);
+                    if (a_Target != a_Source) {
+                        System::Delete(a_Target, a_Source ? a_Source->GetName() : "Godhead"sv);
+                    } else {
+                        System::Delete(a_Target, "Environment"sv);
+                    }
                 }
                 break;
             default:
@@ -73,8 +75,6 @@ namespace Hooks
         static void Call(RE::BSScript::Internal::VirtualMachine* a_VM, RE::VMStackID a_StackID, RE::Actor* a_Actor, RE::BSFixedString a_ActorValue, float a_Magnitude)
         {
             if (System::IsDead(a_Actor)) {
-                System::Delete(System::DeathType::kScripted, nullptr, a_Actor);
-
                 RE::BSTSmartPointer<RE::BSScript::Stack> stack;
 
                 a_VM->GetStackByID(a_StackID, stack);
@@ -83,23 +83,14 @@ namespace Hooks
 
                 auto top = stack ? stack->top : nullptr;
 
-                while (top) {
-                    const auto owning_function = top->owningFunction ? top->owningFunction.get() : nullptr;
-                    const auto script_name = owning_function ? owning_function->GetObjectTypeName().c_str() : "NONE";
-                    const auto function_name = owning_function ? owning_function->GetName().c_str() : "NONE";
-
-                    std::string frame = std::format("{}::{}()", script_name, function_name);
-
-                    if (output.empty()) {
-                        output = frame;
-                    } else {
-                        output = frame + "->" + output;
-                    }
-
+                while (top->previousFrame) {
                     top = top->previousFrame;
                 }
-                
-                if (!output.empty()) { INFO("ModActorValue >> {}", output); }
+
+                const auto owning_function = top->owningFunction ? top->owningFunction.get() : nullptr;
+                const auto script_name = owning_function ? owning_function->GetObjectTypeName().c_str() : "UNKNOWN";
+
+                System::Delete(a_Actor, script_name);
             }
 
             return Native::ModActorValue(a_VM, a_StackID, a_Actor, a_ActorValue, a_Magnitude);
