@@ -63,6 +63,8 @@ bool Settings::CreateGameSetting(const std::string_view& a_Key, const std::strin
 	return true;
 }
 
+// Consider returning anything other than const char* ?
+
 auto Settings::GetGameSetting(const std::string_view& a_Key) -> const char*
 {
 	const auto game_settings = RE::GameSettingCollection::GetSingleton();

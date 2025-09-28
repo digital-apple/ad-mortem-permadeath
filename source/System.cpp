@@ -11,9 +11,7 @@ auto System::GetSingleton() -> System*
 
 bool System::IsDead(RE::Actor* a_Actor)
 {
-    // Check for Essential flag!
-
-    if (a_Actor && a_Actor == RE::PlayerCharacter::GetSingleton()) {
+    if (a_Actor && a_Actor == RE::PlayerCharacter::GetSingleton() && !a_Actor->IsEssential()) {
         const auto av_owner = a_Actor ? a_Actor->AsActorValueOwner() : nullptr;
 
         if (av_owner) {
@@ -150,7 +148,7 @@ void System::QueueDeathMessage(const Engraving& a_Engraving)
         return;
     }
 
-    // Pass those directly to the methods?
+    // Pass those variables directly to the methods below?
 
     const auto sAMP_Engraving = Settings::GetGameSetting("sAMP_Engraving");
     const auto sAMP_Tip = Settings::GetGameSetting("sAMP_Tip");
