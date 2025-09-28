@@ -9,11 +9,11 @@ void Settings::Load()
 	CreateGameSetting("sAMP_QuitToDesktop", "Quit to Desktop (Recommended)");
 	CreateGameSetting("sAMP_QuitToMainMenu", "Quit to Main Menu");
 
-	// Source & Target
+	// Default
 
 	CreateGameSetting("sAMP_DefaultSourceName", "Godhead");
-	CreateGameSetting("sAMP_DefaultPlayerName", "Player");
-
+	CreateGameSetting("sAMP_DefaultRaceName", "Nord");
+	CreateGameSetting("sAMP_DefaultLocationName", "Tamriel");
 
 	// Death messages
 

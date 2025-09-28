@@ -48,13 +48,16 @@ void System::Delete(RE::Actor* a_Target, const std::string_view& a_Source)
         return;
     }
 
-    // Fix this shit
+    // NULL checking 'a_Target' in here is unnecessary because it shouldn't be a reference other than the player character.
 
-    const auto target_name = a_Target ? a_Target->GetName() : "Player";
+    const auto target_name = a_Target->GetName();
     const auto source_name = a_Source.data();
-    const auto race = a_Target ? a_Target->GetRace() ? a_Target->GetRace()->GetName() : "Nord" : "Nord";
-    const auto level = a_Target ? a_Target->GetLevel() : std::uint16_t{ 0 };
-    const auto location = a_Target->GetCurrentLocation() ? a_Target->GetCurrentLocation()->GetName() : a_Target->GetWorldspace() ? a_Target->GetWorldspace()->GetName() : "Tamriel";
+    const auto race = a_Target->GetRace() ? a_Target->GetRace()->GetName() : Settings::GetGameSetting("sAMP_DefaultRaceName");
+    const auto level = a_Target->GetLevel();
+
+    const auto location = a_Target->GetCurrentLocation() ? 
+        a_Target->GetCurrentLocation()->GetName() : a_Target->GetWorldspace() ? 
+        a_Target->GetWorldspace()->GetName() : Settings::GetGameSetting("sAMP_DefaultLocationName");
 
     const auto calendar = RE::Calendar::GetSingleton();
 
