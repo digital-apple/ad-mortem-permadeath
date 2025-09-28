@@ -2,14 +2,24 @@
 
 void Settings::Load()
 {
+	// Messagebox
+
 	CreateGameSetting("sAMP_Engraving", "Name: %s\nRace: %s\nLevel: %i\nIn-game days spent alive: %i\n\nCause of death: %s");
 	CreateGameSetting("sAMP_Tip", "Tip: If you intend to keep playing, it is advisable to restart the game to avoid data corruption!");
 	CreateGameSetting("sAMP_QuitToDesktop", "Quit to Desktop (Recommended)");
 	CreateGameSetting("sAMP_QuitToMainMenu", "Quit to Main Menu");
 
+	// Source & Target
+
 	CreateGameSetting("sAMP_DefaultSourceName", "Godhead");
 	CreateGameSetting("sAMP_DefaultPlayerName", "Player");
 
+
+	// Death messages
+
+	CreateGameSetting("sAMP_Unknown", "Unknown");
+	CreateGameSetting("sAMP_Drowning", "Drowning");
+	CreateGameSetting("sAMP_Falling", "Falling");
 	CreateGameSetting("sAMP_Environment", "Environment");
 	
 	try {

@@ -131,9 +131,8 @@ void System::QueueDeathMessage(const Engraving& a_Engraving)
 
     const auto factory_manager = RE::MessageDataFactoryManager::GetSingleton();
     const auto interface_strings = RE::InterfaceStrings::GetSingleton();
-    const auto game_settings = RE::GameSettingCollection::GetSingleton();
 
-    if (!factory_manager || !interface_strings || !game_settings) {
+    if (!factory_manager || !interface_strings) {
         ERROR("System::QueueDeathMessage >> Failed to obtain critical singletons!");
 
         return;
@@ -148,20 +147,20 @@ void System::QueueDeathMessage(const Engraving& a_Engraving)
         return;
     }
 
-    const auto sAMP_Engraving = game_settings->GetSetting("sAMP_Engraving");
-    const auto sAMP_Tip = game_settings->GetSetting("sAMP_Tip");
-    const auto sAMP_QuitToDesktop = game_settings->GetSetting("sAMP_QuitToDesktop");
-    const auto sAMP_QuitToMainMenu = game_settings->GetSetting("sAMP_QuitToMainMenu");
+    const auto sAMP_Engraving = Settings::GetGameSetting("sAMP_Engraving");
+    const auto sAMP_Tip = Settings::GetGameSetting("sAMP_Tip");
+    const auto sAMP_QuitToDesktop = Settings::GetGameSetting("sAMP_QuitToDesktop");
+    const auto sAMP_QuitToMainMenu = Settings::GetGameSetting("sAMP_QuitToMainMenu");
 
     INFO("{} : {} : {} : {} : {} : {}", a_Engraving.target, a_Engraving.source, a_Engraving.location, a_Engraving.race, a_Engraving.level, a_Engraving.days);
 
     char buffer[0x104];
-    std::snprintf(buffer, sizeof(buffer), sAMP_Engraving->GetString(), a_Engraving.target.c_str(), a_Engraving.race.c_str(), a_Engraving.level, a_Engraving.days, a_Engraving.source.c_str());
+    std::snprintf(buffer, sizeof(buffer), sAMP_Engraving, a_Engraving.target.c_str(), a_Engraving.race.c_str(), a_Engraving.level, a_Engraving.days, a_Engraving.source.c_str());
 
-    message->bodyText = std::format("{}\n\n{}", buffer, sAMP_Tip->GetString());
+    message->bodyText = std::format("{}\n\n{}", buffer, sAMP_Tip);
 
-    message->buttonText.push_back(sAMP_QuitToDesktop->GetString());
-    message->buttonText.push_back(sAMP_QuitToMainMenu->GetString());
+    message->buttonText.push_back(sAMP_QuitToDesktop);
+    message->buttonText.push_back(sAMP_QuitToMainMenu);
 
     message->type = 10;
     message->callback = RE::BSTSmartPointer<RE::IMessageBoxCallback>{ new MessageCallback() };

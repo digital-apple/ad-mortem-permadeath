@@ -21,13 +21,13 @@ namespace Hooks
             switch (T)
             {
             case System::DamageType::kUnknown:
-                System::Delete(a_Target, "Unknown"sv);
+                System::Delete(a_Target, Settings::GetGameSetting("sAMP_Unknown"));
                 break;
             case System::DamageType::kDrowning:
-                System::Delete(a_Target, "Drowning"sv);
+                System::Delete(a_Target, Settings::GetGameSetting("sAMP_Drowning"));
                 break;
             case System::DamageType::kFalling:
-                System::Delete(a_Target, "Falling"sv);
+                System::Delete(a_Target, Settings::GetGameSetting("sAMP_Falling"));
                 break;
             case System::DamageType::kPhysical:
                 {
