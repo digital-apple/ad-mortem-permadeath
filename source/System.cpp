@@ -46,22 +46,26 @@ void System::Delete(RE::Actor* a_Target, const std::string_view& a_Source)
         return;
     }
 
+    System::Engraving engraving;
+
     // NULL checking 'a_Target' in here is unnecessary because it shouldn't be a reference other than the player character.
 
-    const auto target_name = a_Target->GetName() != "" ? a_Target->GetName() : Settings::GetGameSetting("sAMP_DefaultPlayerName");
-    const auto source_name = a_Source.data();
-    const auto race = a_Target->GetRace() ? a_Target->GetRace()->GetName() : Settings::GetGameSetting("sAMP_DefaultRaceName");
-    const auto level = a_Target->GetLevel();
+    engraving.target = a_Target->GetName() && a_Target->GetName()[0] != '\0' ? a_Target->GetName() : Settings::GetGameSetting("sAMP_DefaultPlayerName");
+    engraving.source = a_Source.data();
+    engraving.race = a_Target->GetRace() ? a_Target->GetRace()->GetName() : Settings::GetGameSetting("sAMP_DefaultRaceName");
 
-    const auto location = a_Target->GetCurrentLocation() ? 
+    engraving.location = a_Target->GetCurrentLocation() ? 
         a_Target->GetCurrentLocation()->GetName() : a_Target->GetWorldspace() ? 
         a_Target->GetWorldspace()->GetName() : Settings::GetGameSetting("sAMP_DefaultLocationName");
 
+    engraving.level = a_Target->GetLevel();
+
     const auto calendar = RE::Calendar::GetSingleton();
 
-    const auto days_passed = calendar ? std::floorf(calendar->GetDaysPassed()) : 0.f;
+    engraving.days = calendar ? std::floorf(calendar->GetDaysPassed()) : 0.f;
 
-    QueueDeathMessage({ target_name, source_name, race, location, level, days_passed });
+    QueueDeathMessage(engraving);
+    ExportEngraving(engraving);
 }
 
 auto System::GetSaveFilesDirectory() -> std::optional<std::filesystem::path>
@@ -172,6 +176,27 @@ void System::QueueDeathMessage(const Engraving& a_Engraving)
     message->optionIndexOffset = 4;
 
     message->QueueMessage();
+}
+
+void System::WriteString(std::ofstream& a_Output, const std::string_view& a_String)
+{
+    auto size = static_cast<std::uint32_t>(a_String.size());
+
+    a_Output.write(reinterpret_cast<const char*>(&size), sizeof(size));
+    a_Output.write(a_String.data(), size);
+}
+
+void System::ExportEngraving(const Engraving& a_Engraving)
+{
+    std::ofstream output(System::ENGRAVINGS_PATH, std::ios::binary | std::ios::app);
+
+    WriteString(output, a_Engraving.target);
+    WriteString(output, a_Engraving.source);
+    WriteString(output, a_Engraving.race);
+    WriteString(output, a_Engraving.location);
+
+    output.write(reinterpret_cast<const char*>(&a_Engraving.level), sizeof(a_Engraving.level));
+    output.write(reinterpret_cast<const char*>(&a_Engraving.days), sizeof(a_Engraving.days));
 }
 
 bool System::SkipFile(const std::string_view& a_playtime)

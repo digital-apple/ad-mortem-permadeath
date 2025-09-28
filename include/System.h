@@ -44,13 +44,13 @@ public:
     static auto GetSingleton() -> System*;
 
     static bool IsDead(RE::Actor* a_Actor);
-
     static void Delete(RE::Actor* a_Target, const std::string_view& a_Source);
-
     static void QueueDeathMessage(const Engraving& a_Engraving);
 
-    auto GetSaveFilesDirectory() -> std::optional<std::filesystem::path>;
+    static void WriteString(std::ofstream& a_Stream, const std::string_view& a_String);
+    static void ExportEngraving(const Engraving& a_Engraving);
 
+    auto GetSaveFilesDirectory() -> std::optional<std::filesystem::path>;
     bool SkipFile(const std::string_view& a_playtime);
 private:
     System() = default;
@@ -61,6 +61,8 @@ private:
 
     System& operator=(const System&) = delete;
     System& operator=(System&&) = delete;
+
+    static inline std::filesystem::path ENGRAVINGS_PATH = { L"Data\\SKSE\\Plugins\\Ad Mortem - Permadeath\\Engravings.bin" };
 
     std::optional<std::filesystem::path> save_files;
 };

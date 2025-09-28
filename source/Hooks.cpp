@@ -31,8 +31,8 @@ namespace Hooks
                 break;
             case System::DamageType::kPhysical:
                 {
-                    if (a_Target != a_Source) {
-                        System::Delete(a_Target, a_Source ? a_Source->GetName() : Settings::GetGameSetting("sAMP_DefaultSourceName"));
+                    if (a_Source && a_Target != a_Source) {
+                        System::Delete(a_Target, a_Source->GetName() ? a_Source->GetName() : Settings::GetGameSetting("sAMP_DefaultSourceName"));
                     } else {
                         System::Delete(a_Target, Settings::GetGameSetting("sAMP_Environment"));
                     }
@@ -40,8 +40,8 @@ namespace Hooks
                 break;
             case System::DamageType::kMagical:
                 {
-                    if (a_Target != a_Source) {
-                        System::Delete(a_Target, a_Source ? a_Source->GetName() : Settings::GetGameSetting("sAMP_DefaultSourceName"));
+                    if (a_Source && a_Target != a_Source) {
+                        System::Delete(a_Target, a_Source->GetName() ? a_Source->GetName() : Settings::GetGameSetting("sAMP_DefaultSourceName"));
                     } else {
                         System::Delete(a_Target, Settings::GetGameSetting("sAMP_Environment"));
                     }
