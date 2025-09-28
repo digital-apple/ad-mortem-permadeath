@@ -147,10 +147,14 @@ void System::QueueDeathMessage(const Engraving& a_Engraving)
         return;
     }
 
+    // Pass those directly to the methods?
+
     const auto sAMP_Engraving = Settings::GetGameSetting("sAMP_Engraving");
     const auto sAMP_Tip = Settings::GetGameSetting("sAMP_Tip");
     const auto sAMP_QuitToDesktop = Settings::GetGameSetting("sAMP_QuitToDesktop");
     const auto sAMP_QuitToMainMenu = Settings::GetGameSetting("sAMP_QuitToMainMenu");
+
+    // DEBUG
 
     INFO("{} : {} : {} : {} : {} : {}", a_Engraving.target, a_Engraving.source, a_Engraving.location, a_Engraving.race, a_Engraving.level, a_Engraving.days);
 
