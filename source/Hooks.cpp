@@ -84,12 +84,12 @@ namespace Hooks
 
                 auto top = stack ? stack->top : nullptr;
 
-                while (top->previousFrame) {
+                while (top && top->previousFrame) {
                     top = top->previousFrame;
                 }
 
                 const auto owning_function = top->owningFunction ? top->owningFunction.get() : nullptr;
-                const auto script_name = owning_function ? owning_function->GetObjectTypeName().c_str() : "UNKNOWN";
+                const auto script_name = owning_function ? owning_function->GetObjectTypeName().c_str() : Settings::GetGameSetting("sAMP_DefaultScriptName");
 
                 System::Delete(a_Actor, script_name);
             }

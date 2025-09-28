@@ -48,7 +48,7 @@ void System::Delete(RE::Actor* a_Target, const std::string_view& a_Source)
 
     // NULL checking 'a_Target' in here is unnecessary because it shouldn't be a reference other than the player character.
 
-    const auto target_name = a_Target->GetName();
+    const auto target_name = a_Target->GetName() != "" ? a_Target->GetName() : Settings::GetGameSetting("sAMP_DefaultPlayerName");
     const auto source_name = a_Source.data();
     const auto race = a_Target->GetRace() ? a_Target->GetRace()->GetName() : Settings::GetGameSetting("sAMP_DefaultRaceName");
     const auto level = a_Target->GetLevel();
