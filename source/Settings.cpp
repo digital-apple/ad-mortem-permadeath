@@ -6,6 +6,11 @@ void Settings::Load()
 	CreateGameSetting("sAMP_Tip", "Tip: If you intend to keep playing, it is advisable to restart the game to avoid data corruption!");
 	CreateGameSetting("sAMP_QuitToDesktop", "Quit to Desktop (Recommended)");
 	CreateGameSetting("sAMP_QuitToMainMenu", "Quit to Main Menu");
+
+	CreateGameSetting("sAMP_DefaultSourceName", "Godhead");
+	CreateGameSetting("sAMP_DefaultPlayerName", "Player");
+
+	CreateGameSetting("sAMP_Environment", "Environment");
 	
 	try {
 		//const auto settings = toml::parse(TOML_PATH);
@@ -46,4 +51,19 @@ bool Settings::CreateGameSetting(const std::string_view& a_Key, const std::strin
 	INFO("Settings::CreateGameSetting >> Finished creating Key: {}", a_Key);
 
 	return true;
+}
+
+auto Settings::GetGameSetting(const std::string_view& a_Key) -> const char*
+{
+	const auto game_settings = RE::GameSettingCollection::GetSingleton();
+
+	if (!a_Key.empty() && game_settings) {
+		const auto setting = game_settings->GetSetting(a_Key.data());
+
+		if (setting) {
+			return setting->GetString();
+		}
+	}
+
+	return "";
 }

@@ -1,5 +1,6 @@
 #include "Hooks.h"
 
+#include "Settings.h"
 #include "System.h"
 
 #undef GetObject
@@ -31,18 +32,18 @@ namespace Hooks
             case System::DamageType::kPhysical:
                 {
                     if (a_Target != a_Source) {
-
+                        System::Delete(a_Target, a_Source ? a_Source->GetName() : Settings::GetGameSetting("sAMP_DefaultSourceName"));
                     } else {
-
+                        System::Delete(a_Target, Settings::GetGameSetting("sAMP_Environment"));
                     }
                 }
                 break;
             case System::DamageType::kMagical:
                 {
                     if (a_Target != a_Source) {
-                        System::Delete(a_Target, a_Source ? a_Source->GetName() : "Godhead"sv);
+                        System::Delete(a_Target, a_Source ? a_Source->GetName() : Settings::GetGameSetting("sAMP_DefaultSourceName"));
                     } else {
-                        System::Delete(a_Target, "Environment"sv);
+                        System::Delete(a_Target, Settings::GetGameSetting("sAMP_Environment"));
                     }
                 }
                 break;

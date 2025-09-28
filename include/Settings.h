@@ -5,6 +5,7 @@ class Settings
 public:
 	static void Load();
 	static bool CreateGameSetting(const std::string_view& a_Key, const std::string_view& a_Value);
+	static auto GetGameSetting(const std::string_view& a_Key) -> const char*;
 
 	static inline float MinimumMinutesForDeletion = { 5.0 };
 
