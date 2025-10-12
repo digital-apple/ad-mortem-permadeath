@@ -39,6 +39,7 @@ public:
         std::string location;
         std::uint16_t level;
         float days;
+        std::uint32_t date;
     };
 
     static auto GetSingleton() -> System*;

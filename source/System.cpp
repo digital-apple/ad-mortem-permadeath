@@ -64,6 +64,11 @@ void System::Delete(RE::Actor* a_Target, const std::string_view& a_Source)
 
     engraving.days = calendar ? std::floorf(calendar->GetDaysPassed()) : 0.f;
 
+    const auto current_time = std::chrono::system_clock::now();
+    const auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(current_time.time_since_epoch()).count();
+
+    engraving.date = milliseconds;
+
     QueueDeathMessage(engraving);
     ExportEngraving(engraving);
 }
@@ -197,6 +202,7 @@ void System::ExportEngraving(const Engraving& a_Engraving)
 
     output.write(reinterpret_cast<const char*>(&a_Engraving.level), sizeof(a_Engraving.level));
     output.write(reinterpret_cast<const char*>(&a_Engraving.days), sizeof(a_Engraving.days));
+    output.write(reinterpret_cast<const char*>(&a_Engraving.date), sizeof(a_Engraving.date));
 }
 
 bool System::SkipFile(const std::string_view& a_playtime)
