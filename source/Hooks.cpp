@@ -76,6 +76,9 @@ namespace Hooks
         static void Call(RE::BSScript::Internal::VirtualMachine* a_VM, RE::VMStackID a_StackID, RE::Actor* a_Actor, RE::BSFixedString a_ActorValue, float a_Magnitude)
         {
             if (System::IsDead(a_Actor)) {
+
+                INFO("ModActorValue::Call >> AV: {} || Magnitude: {}", a_ActorValue.c_str(), a_Magnitude);
+
                 RE::BSTSmartPointer<RE::BSScript::Stack> stack;
 
                 a_VM->GetStackByID(a_StackID, stack);
@@ -85,9 +88,15 @@ namespace Hooks
                 auto top = stack ? stack->top : nullptr;
 
                 while (top && top->previousFrame) {
+                    const auto test_owning_function = top->owningFunction ? top->owningFunction.get() : nullptr;
+                    const auto test_script_name = test_owning_function ? test_owning_function->GetObjectTypeName().c_str() : Settings::GetGameSetting("sAMP_DefaultScriptName");
+
+                    INFO("ModActorValue::Call >> Current frame: {}", test_script_name);
+
                     top = top->previousFrame;
                 }
 
+                // nullcheck:
                 const auto owning_function = top->owningFunction ? top->owningFunction.get() : nullptr;
                 const auto script_name = owning_function ? owning_function->GetObjectTypeName().c_str() : Settings::GetGameSetting("sAMP_DefaultScriptName");
 
@@ -129,6 +138,6 @@ namespace Hooks
 
         HOOK::VFUNC<RE::QuickSaveLoadHandler, 0x1, CanProcess>();
 
-        INFO("Hooks ~ Hooked <QuickSaveLoadHandler::CanProcess>");
+        INFO("Hooks >> Hooked <QuickSaveLoadHandler::CanProcess>");
     }
 }

@@ -18,6 +18,8 @@ bool System::IsDead(RE::Actor* a_Actor)
             const auto current_health = av_owner->GetActorValue(RE::ActorValue::kHealth);
 
             if (current_health < 0.f) {
+                INFO("System::IsDead >> Current health: {}", current_health);
+
                 return true;
             }
         }
@@ -29,6 +31,14 @@ bool System::IsDead(RE::Actor* a_Actor)
 void System::Delete(RE::Actor* a_Target, const std::string_view& a_Source)
 {
     INFO("System::Delete >> CALL!");
+
+    if (Locked()) {
+        INFO("System::Delete >> Locked!");
+
+        return;
+    }
+
+    Lock(true);
 
     const auto save_manager = RE::BGSSaveLoadManager::GetSingleton();
 
@@ -67,10 +77,20 @@ void System::Delete(RE::Actor* a_Target, const std::string_view& a_Source)
     const auto current_time = std::chrono::system_clock::now();
     const auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(current_time.time_since_epoch()).count();
 
-    engraving.date = milliseconds;
+    engraving.date = static_cast<std::uint32_t>(milliseconds);
 
     QueueDeathMessage(engraving);
     ExportEngraving(engraving);
+}
+
+void System::Lock(bool a_Lock)
+{
+    GetSingleton()->lock.store(a_Lock);
+}
+
+bool System::Locked()
+{
+    return GetSingleton()->lock;
 }
 
 auto System::GetSaveFilesDirectory() -> std::optional<std::filesystem::path>
